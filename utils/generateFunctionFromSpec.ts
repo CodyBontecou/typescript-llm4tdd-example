@@ -28,6 +28,7 @@ export async function generateFunctionFromSpec(
     Do not return Markdown output
     Do not wrap code in triple backticks
     Do not return YAML
+		Do not include the single apostrophe character
 `
     const prompt = customPrompt || defaultPrompt
     const retryPrompt = 'Tests are failing with this output. Try again.'

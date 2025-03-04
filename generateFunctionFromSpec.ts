@@ -1,58 +1,29 @@
-import OpenAI from 'openai'
 import * as fs from 'fs'
-import * as path from 'path'
 import { exec } from 'child_process'
-import { fileURLToPath } from 'url'
+
+import { readFileContent } from './utils/readFileContent'
 import { ChatCompletionMessageParam } from 'openai/resources'
+import { chat } from './utils/chat'
 
-// Get __dirname equivalent in ESM
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const prompt = `
+	Write a Typescript module that will make these tests pass and conforms to the passed conventions.
 
-const openai = new OpenAI()
-
-const INITIAL_PROMPT =
-    'Write a Typescript module that will make these tests pass and conforms to the passed conventions'
-const RETRY_PROMPT = 'Tests are failing with this output. Try again.'
-const CONVENTION_TEXT = `Only return executable Typescript code
-Do not return Markdown output
-Do not wrap code in triple backticks
-Do not return YAML`
-
-// Read file content programmatically
-const readFileContent = (filePath: string): string => {
-    try {
-        const absolutePath = path.resolve(__dirname, filePath)
-        return fs.readFileSync(absolutePath, 'utf8')
-    } catch (error) {
-        console.error(`Error reading file ${filePath}:`, error)
-        return ''
-    }
-}
+	Only return executable Typescript code
+	Do not return Markdown output
+	Do not wrap code in triple backticks
+	Do not return YAML
+`
+const retryPrompt = 'Tests are failing with this output. Try again.'
 
 // Read the test file
-const GET_ADD_SPEC = readFileContent('./transactionProcessor.spec.ts')
+const getAddSpec = readFileContent('./calculateDiscount.spec.ts')
 
 const messages: ChatCompletionMessageParam[] = [
     {
         role: 'system',
-        content: INITIAL_PROMPT + CONVENTION_TEXT + GET_ADD_SPEC,
+        content: prompt + getAddSpec,
     },
 ]
-
-async function chat() {
-    try {
-        const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages,
-        })
-
-        return completion.choices[0].message.content
-    } catch (error) {
-        console.error('Error:', error)
-        return null
-    }
-}
 
 // Function to run tests and return a promise with the test results
 function runTests(): Promise<{ passed: boolean; output: string }> {
@@ -109,34 +80,26 @@ async function main() {
         if (attempt > 1 && testOutput) {
             messages.push({
                 role: 'user',
-                content: RETRY_PROMPT + '\n\n' + testOutput,
+                content: retryPrompt + '\n\n' + testOutput,
             })
         }
 
-        const response = await chat()
+        const response = await chat(messages)
 
         // Write the response to add.ts
         if (response) {
-            fs.writeFileSync('./transactionProcessor.ts', response, 'utf8')
+            fs.writeFileSync('./calculateDiscount.ts', response, 'utf8')
 
             // Run the tests
             const testResult = await runTests()
             testsPassed = testResult.passed
             testOutput = testResult.output
 
-            // If tests passed, break out of the loop
-            if (testsPassed) {
-                console.log(`\nSuccess! Tests passed on attempt ${attempt}`)
-                break
-            }
-
             // Add the AI's response to the message history
             messages.push({
                 role: 'assistant',
                 content: response,
             })
-
-            console.log(`\nTests failed on attempt ${attempt}. Retrying...`)
         } else {
             console.error('Failed to get a response from the AI. Exiting.')
             break

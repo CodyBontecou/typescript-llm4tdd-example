@@ -1,25 +1,62 @@
-Ideally the `spec` file contains basic structure of tests in English and LLM generates the rest:
+# LLM4TDD: TypeScript Example
 
-```ts
-import { describe, it, expect } from 'vitest'
+This project demonstrates Test-Driven Development (TDD) using Large Language Models (LLMs). The workflow consists of three main steps:
 
-describe('functionName', () => {
-	it('does the thing you want', () => {})
-	it("doesn't do the thing you're worried about", () => {})
-})
-```
+1. **Generate Test Skeleton**: Create a basic structure for tests
+2. **Generate Complete Tests**: Flesh out the test skeleton with actual test cases
+3. **Generate Function Implementation**: Create a function that passes all the tests
 
-I want the tests to be generated
-
-I want the function it is testing to be created
-
-I want the function to recursively call an llm, adjusting the tested function until all of the tests are passed
-
-Is it **agentic** to split this into multiple llm calls?
-
+## Workflow
 
 ```mermaid
 graph TD
-    A[Tests skeleton created] --> B[Tests generated]
-    B --> C[Generate function]
+    A[Test skeleton created] --> B[Complete tests generated]
+    B --> C[Function implementation generated]
+    C --> D[Tests passing]
 ```
+
+## Usage
+
+Run the complete TDD workflow:
+
+```bash
+npm run tdd
+```
+
+This will:
+1. Generate a test skeleton for a random function
+2. Generate a complete test file from the skeleton
+3. Generate a function implementation that passes all the tests
+
+## Individual Steps
+
+You can also run each step individually:
+
+```bash
+# Generate a test skeleton
+npx tsx generateTestSkeleton.ts
+
+# Generate a complete test from a skeleton
+npx tsx generateTestFileFromSkeleton.ts
+
+# Generate a function implementation from a test file
+npx tsx generateFunctionFromSpec.ts
+```
+
+## Utilities
+
+The project includes several utility functions in the `utils` directory:
+
+- `generateTestSkeleton.ts`: Creates a test skeleton using OpenAI
+- `generateTestFromSkeleton.ts`: Generates complete tests from a skeleton
+- `generateFunctionFromSpec.ts`: Creates a function implementation that passes tests
+- `chat.ts`: Utility for interacting with OpenAI
+- `readFileContent.ts`: Utility for reading file content
+- `writeFileContent.ts`: Utility for writing file content
+- `runTests.ts`: Utility for running tests
+
+## Requirements
+
+- Node.js
+- npm
+- OpenAI API key (set as OPENAI_API_KEY environment variable)

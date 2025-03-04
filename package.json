@@ -1,0 +1,17 @@
+{
+  "name": "typescript-example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "openai": "^4.86.1",
+    "vitest": "^3.0.7"
+  }
+}

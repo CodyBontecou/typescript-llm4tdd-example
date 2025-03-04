@@ -1,3 +1,3 @@
 export function add(...numbers: number[]): number {
-    return numbers.reduce((sum, current) => sum + current, 0);
+    return numbers.reduce((sum, current) => sum + current, 0)
 }

@@ -1,7 +1,5 @@
 export * from './chat'
 export * from './readFileContent'
 export * from './writeFileContent'
-export * from './generateTestFromSkeleton'
 export * from './generateFunctionFromSpec'
 export * from './runTests'
-export * from './generateTestSkeleton'

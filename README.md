@@ -15,14 +15,11 @@ I want the function it is testing to be created
 
 I want the function to recursively call an llm, adjusting the tested function until all of the tests are passed
 
-I want to crawl and
-
-I'm thinking it can then write a function to get the tests to pass.
 Is it **agentic** to split this into multiple llm calls?
 
 
 ```mermaid
 graph TD
-    A[Function A] --> B[Function B]
-    B --> C[Function C]
+    A[Tests skeleton created] --> B[Tests generated]
+    B --> C[Generate function]
 ```

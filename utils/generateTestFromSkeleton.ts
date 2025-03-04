@@ -17,7 +17,8 @@ export async function generateTestFromSkeleton(
 ): Promise<string | null> {
     // Default prompt if none provided
     const defaultPrompt = `
-    Use this Vitest test skeleton to finish writing this test.
+    Use this Vitest test skeleton to finish writing the tests.
+
     Only return executable Typescript code
     Do not return Markdown output
     Do not wrap code in triple backticks

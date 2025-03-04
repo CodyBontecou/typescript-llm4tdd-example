@@ -1,6 +1,8 @@
 import OpenAI from 'openai'
 import { zodResponseFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
+import 'dotenv/config'
+
 import { writeFileContent } from './writeFileContent'
 
 // Define schemas for the test structure
@@ -40,7 +42,10 @@ export async function generateTestSkeleton(
     seed?: number,
     additionalContext?: string
 ): Promise<TestSuite> {
-    const openai = new OpenAI()
+    const openai = new OpenAI({
+        // baseURL: 'https://api.deepseek.com',
+        // apiKey: process.env.DEEPSEEK_API_KEY,
+    })
 
     // Default prompt if none provided
     const defaultPrompt = `

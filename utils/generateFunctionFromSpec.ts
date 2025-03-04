@@ -25,9 +25,11 @@ export async function generateFunctionFromSpec(
     Write a Typescript module that will make these tests pass and conforms to the passed conventions.
 
     Only return executable Typescript code
+		Do not return text
     Do not return Markdown output
     Do not wrap code in triple backticks
     Do not return YAML
+		Do not include the single apostrophe character
 `
     const prompt = customPrompt || defaultPrompt
     const retryPrompt = 'Tests are failing with this output. Try again.'
@@ -60,7 +62,7 @@ export async function generateFunctionFromSpec(
         // If this is a retry, add the test output to the messages
         if (attempt > 1 && testOutput) {
             messages.push({
-                role: 'user',
+                role: 'system',
                 content: retryPrompt + '\n\n' + testOutput,
             })
         }

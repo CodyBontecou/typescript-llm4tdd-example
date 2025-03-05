@@ -6,7 +6,7 @@ import { generateFunctionFromSpec } from './utils'
  */
 async function runTDDWorkflow() {
     try {
-        await generateFunctionFromSpec('add.ts', 'add.spec.ts')
+        await generateFunctionFromSpec('add.spec.ts', 'add.ts')
     } catch (error) {
         console.error('Workflow failed:', error)
     }

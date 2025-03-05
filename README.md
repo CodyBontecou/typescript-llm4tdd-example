@@ -28,20 +28,6 @@ This will:
 2. Generate a complete test file from the skeleton
 3. Generate a function implementation that passes all the tests
 
-## Individual Steps
-
-You can also run each step individually:
-
-```bash
-# Generate a test skeleton
-npx tsx generateTestSkeleton.ts
-
-# Generate a complete test from a skeleton
-npx tsx generateTestFileFromSkeleton.ts
-
-# Generate a function implementation from a test file
-npx tsx generateFunctionFromSpec.ts
-```
 
 ## Utilities
 

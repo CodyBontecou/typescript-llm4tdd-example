@@ -17,7 +17,7 @@ export async function generateFunctionFromSpec(
     testFilePath: string,
     outputFilePath: string,
     customPrompt?: string,
-    maxAttempts: number = 10,
+    maxAttempts: number = 5,
     testCommand?: string
 ): Promise<string | null> {
     // Default prompt if none provided
@@ -35,7 +35,7 @@ export async function generateFunctionFromSpec(
     // Read the test specification file
     const testSpec = readFileContent(testFilePath)
 
-    // Prepare initial messages for the AI
+    // Attach content of the spec file to prompt
     const messages: ChatCompletionMessageParam[] = [
         {
             role: 'system',

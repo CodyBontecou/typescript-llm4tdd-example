@@ -34,10 +34,6 @@ export async function generateFunctionFromSpec(
 
     // Read the test specification file
     const testSpec = readFileContent(testFilePath)
-    if (!testSpec) {
-        console.error(`Failed to read test specification from ${testFilePath}`)
-        return null
-    }
 
     // Prepare initial messages for the AI
     const messages: ChatCompletionMessageParam[] = [

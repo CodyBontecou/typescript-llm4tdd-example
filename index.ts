@@ -11,7 +11,7 @@ import { formatPhoneNumberDoc } from './utils/constants/formatPhoneNumberDoc'
  * 2. Generate a complete test from the skeleton
  * 3. Generate a function implementation that passes the tests
  */
-async function runTDDWorkflow() {
+export async function runTDDWorkflow() {
     try {
         // Step 1: Generate a test skeleton
         const { testSuite, filePath } = await generateTestSkeletonFile(

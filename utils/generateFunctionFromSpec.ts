@@ -3,6 +3,7 @@ import { chat } from './chat'
 import { readFileContent } from './readFileContent'
 import { writeFileContent } from './writeFileContent'
 import { runTests } from './runTests'
+import { runTDDWorkflow } from '..'
 
 /**
  * Generates a function implementation from a test specification using AI
@@ -17,7 +18,7 @@ export async function generateFunctionFromSpec(
     testFilePath: string,
     outputFilePath: string,
     customPrompt?: string,
-    maxAttempts: number = 10,
+    maxAttempts: number = 5,
     testCommand?: string
 ): Promise<string | null> {
     // Default prompt if none provided
@@ -89,6 +90,11 @@ export async function generateFunctionFromSpec(
             console.error('Failed to get a response from the AI.')
             break
         }
+    }
+
+    // Re-generate Test Skeleton and attempt function generation again
+    if (attempt === maxAttempts) {
+        await runTDDWorkflow()
     }
 
     return testsPassed ? generatedContent : null

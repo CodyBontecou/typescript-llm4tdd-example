@@ -98,7 +98,8 @@ export async function generateTestSkeleton(
 export async function generateTestSkeletonFile(
     customPrompt?: string,
     model: string = 'gpt-4o-2024-08-06',
-    seed: number = Math.floor(Math.random() * 1000000)
+    seed: number = Math.floor(Math.random() * 1000000),
+    index?: number
 ): Promise<{ testSuite: TestSuite; filePath: string }> {
     // Generate the test skeleton
     const testSkeleton = await generateTestSkeleton(customPrompt, model, seed)
@@ -121,7 +122,7 @@ describe('${testSkeleton.functionName}', () => {
 `
 
     // Write the spec file
-    const filePath = `${testSkeleton.functionName}.spec.ts`
+    const filePath = `${testSkeleton.functionName + index}.spec.ts`
     writeFileContent(filePath, specContent.trim())
 
     console.log(`Generated ${filePath}`)

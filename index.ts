@@ -16,7 +16,7 @@ import { extractItStatements } from './utils/extractItStatements'
 export async function runTDDWorkflow() {
     try {
         // Step 1: Generate a test skeleton
-        const { testSuite, filePath } = await generateTestSkeletonFile(
+        const { filePath } = await generateTestSkeletonFile(
             formatPhoneNumberDoc
         )
 
@@ -33,6 +33,14 @@ export async function runTDDWorkflow() {
             // Step 4: Iterate over nodes
             await Promise.all(
                 itStatements.map(async (_, index) => {
+                    const { testSuite, filePath } =
+                        await generateTestSkeletonFile(
+                            formatPhoneNumberDoc,
+                            'gpt-4o-2024-08-06',
+                            Math.floor(Math.random() * 1000000),
+                            index
+                        )
+
                     const outputFilePath = `./${
                         testSuite.functionName + index
                     }.ts`

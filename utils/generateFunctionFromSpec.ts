@@ -19,7 +19,7 @@ export async function generateFunctionFromSpec(
     outputFilePath: string,
     testCommand?: string,
     customPrompt?: string
-): Promise<string | null> {
+): Promise<{ response: string; passed: boolean } | undefined> {
     // Default prompt if none provided
     const defaultPrompt = `
     Write a Typescript module that will make these tests pass and conforms to the passed conventions.
@@ -37,7 +37,6 @@ export async function generateFunctionFromSpec(
     const testSpec = readFileContent(testFilePath)
     if (!testSpec) {
         console.error(`Failed to read test specification from ${testFilePath}`)
-        return null
     }
 
     // Prepare initial messages for the AI
@@ -48,30 +47,19 @@ export async function generateFunctionFromSpec(
         },
     ]
 
-    let testsPassed = false
-
-    let generatedContent: string | null = null
-
     // Generate the function implementation
     const response = await chat(messages)
 
     // Save and test the generated implementation
     if (response) {
-        generatedContent = response
-
         // Run the tests
         const { passed } = await runTests(testCommand)
 
-        console.log(passed)
-
-        testsPassed = passed
-
         if (passed) {
             writeFileContent(outputFilePath, response)
+            return { response, passed }
         } else {
             await runTDDWorkflow()
         }
     }
-
-    return testsPassed ? generatedContent : null
 }

@@ -31,25 +31,25 @@ export async function runTDDWorkflow() {
             const itStatements = extractItStatements(testFileContent)
 
             // Step 4: Iterate over nodes
-            await Promise.all(
-                itStatements.map(async (_, index) => {
-                    const { testSuite, filePath } =
-                        await generateTestSkeletonFile(
-                            formatPhoneNumberDoc,
-                            'gpt-4o-2024-08-06',
-                            Math.floor(Math.random() * 1000000),
-                            index
-                        )
+            itStatements.forEach(async (_, index) => {
+                // for (const [index, _] of itStatements.entries()) {
+                const { testSuite, filePath } = await generateTestSkeletonFile(
+                    formatPhoneNumberDoc,
+                    'gpt-4o-2024-08-06',
+                    Math.floor(Math.random() * 1000000),
+                    index
+                )
 
-                    const outputFilePath = `./${
-                        testSuite.functionName + index
-                    }.ts`
-                    return await generateFunctionFromSpec(
-                        filePath,
-                        outputFilePath
-                    )
-                })
-            )
+                await generateTestFromSkeleton(filePath, filePath)
+
+                const outputFilePath = `./${testSuite.functionName + index}.ts`
+                const res = await generateFunctionFromSpec(
+                    filePath,
+                    outputFilePath
+                )
+
+                if (res?.passed) return
+            })
         }
     } catch (error) {
         console.error('Workflow failed:', error)

@@ -122,7 +122,9 @@ describe('${testSkeleton.functionName}', () => {
 `
 
     // Write the spec file
-    const filePath = `${testSkeleton.functionName + index}.spec.ts`
+    const filePath = `${
+        testSkeleton.functionName + (index ? index : '')
+    }.spec.ts`
     writeFileContent(filePath, specContent.trim())
 
     console.log(`Generated ${filePath}`)

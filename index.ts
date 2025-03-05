@@ -3,7 +3,9 @@ import {
     generateTestFromSkeleton,
     generateFunctionFromSpec,
 } from './utils'
+import { docGeneratorPrompt } from './utils/constants/docGeneratorPrompt'
 import { formatPhoneNumberDoc } from './utils/constants/formatPhoneNumberDoc'
+import { extractItStatements } from './utils/extractItStatements'
 
 /**
  * Complete TDD workflow:
@@ -19,11 +21,28 @@ export async function runTDDWorkflow() {
         )
 
         // Step 2: Generate a complete test from the skeleton
-        await generateTestFromSkeleton(filePath, filePath)
+        const testFileContent = await generateTestFromSkeleton(
+            filePath,
+            filePath
+        )
 
-        // Step 3: Generate a function implementation that passes the tests
-        const outputFilePath = `./${testSuite.functionName}.ts`
-        await generateFunctionFromSpec(filePath, outputFilePath)
+        // Step 3: Extract it statements from testFile:
+        if (testFileContent) {
+            const itStatements = extractItStatements(testFileContent)
+
+            // Step 4: Iterate over nodes
+            await Promise.all(
+                itStatements.map(async (_, index) => {
+                    const outputFilePath = `./${
+                        testSuite.functionName + index
+                    }.ts`
+                    return await generateFunctionFromSpec(
+                        filePath,
+                        outputFilePath
+                    )
+                })
+            )
+        }
     } catch (error) {
         console.error('Workflow failed:', error)
     }

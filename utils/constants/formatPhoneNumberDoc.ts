@@ -1,5 +1,5 @@
 export const formatPhoneNumberDoc = `Ticket: Format Phone Number Function
-Objective: Implement a format_phone_number function that validates and formats U.S. phone numbers.
+Objective: Implement a formatPhoneNumber function that validates and formats U.S. phone numbers.
 
 Functional Requirements
 The function MUST adhere to the following rules. Tests should be written first for each criterion.
@@ -76,4 +76,4 @@ Deliverables:
 
 A test suite covering all validation rules and edge cases.
 
-The format_phone_number function that passes all tests.`
+The formatPhoneNumber function that passes all tests.`

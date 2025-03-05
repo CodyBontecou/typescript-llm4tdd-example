@@ -10,16 +10,15 @@ import { runTDDWorkflow } from '..'
  * @param testFilePath Path to the test specification file
  * @param outputFilePath Path where the generated function should be saved
  * @param customPrompt Optional custom prompt to override the default one
- * @param maxAttempts Maximum number of attempts to generate a passing implementation (default: 5)
+ * @param spawnedNodes Number of instances of ChatGPT to spawn (default: 5)
  * @param testCommand Optional custom test command to run (default: 'npm run test')
  * @returns Promise that resolves to the generated content if successful, or null if all attempts failed
  */
 export async function generateFunctionFromSpec(
     testFilePath: string,
     outputFilePath: string,
-    customPrompt?: string,
-    maxAttempts: number = 5,
-    testCommand?: string
+    testCommand?: string,
+    customPrompt?: string
 ): Promise<string | null> {
     // Default prompt if none provided
     const defaultPrompt = `
@@ -33,7 +32,6 @@ export async function generateFunctionFromSpec(
 		Do not include the single apostrophe character
 `
     const prompt = customPrompt || defaultPrompt
-    const retryPrompt = 'Tests are failing with this output. Try again.'
 
     // Read the test specification file
     const testSpec = readFileContent(testFilePath)
@@ -50,51 +48,29 @@ export async function generateFunctionFromSpec(
         },
     ]
 
-    // Main execution loop
     let testsPassed = false
-    let attempt = 0
-    let testOutput = ''
+
     let generatedContent: string | null = null
 
-    while (!testsPassed && attempt < maxAttempts) {
-        attempt++
-        console.log(`\n--- Attempt ${attempt} ---`)
+    // Generate the function implementation
+    const response = await chat(messages)
 
-        // If this is a retry, add the test output to the messages
-        if (attempt > 1 && testOutput) {
-            messages.push({
-                role: 'system',
-                content: retryPrompt + '\n\n' + testOutput,
-            })
-        }
+    // Save and test the generated implementation
+    if (response) {
+        generatedContent = response
 
-        // Generate the function implementation
-        const response = await chat(messages)
+        // Run the tests
+        const { passed } = await runTests(testCommand)
 
-        // Save and test the generated implementation
-        if (response) {
-            generatedContent = response
+        console.log(passed)
+
+        testsPassed = passed
+
+        if (passed) {
             writeFileContent(outputFilePath, response)
-
-            // Run the tests
-            const testResult = await runTests(testCommand)
-            testsPassed = testResult.passed
-            testOutput = testResult.output
-
-            // Add the AI's response to the message history
-            messages.push({
-                role: 'assistant',
-                content: response,
-            })
         } else {
-            console.error('Failed to get a response from the AI.')
-            break
+            await runTDDWorkflow()
         }
-    }
-
-    // Re-generate Test Skeleton and attempt function generation again
-    if (attempt === maxAttempts) {
-        await runTDDWorkflow()
     }
 
     return testsPassed ? generatedContent : null

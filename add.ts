@@ -1,3 +1,5 @@
-export function add(...numbers: number[]): number {
-    return numbers.reduce((sum, current) => sum + current, 0)
+function add(...numbers: number[]): number {
+    return numbers.reduce((acc, curr) => acc + curr, 0);
 }
+
+export { add };

@@ -56,7 +56,7 @@ export async function generateFunctionFromSpec(
         // If this is a retry, add the test output to the messages
         if (attempt > 1 && testOutput) {
             messages.push({
-                role: 'user',
+                role: 'system',
                 content: retryPrompt + '\n\n' + testOutput,
             })
         }

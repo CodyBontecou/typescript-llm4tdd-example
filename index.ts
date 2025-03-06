@@ -14,12 +14,15 @@ import { formatPhoneNumberDoc } from './utils/constants/formatPhoneNumberDoc'
 export async function runTDDWorkflow() {
     try {
         // Step 1: Generate a test skeleton
+        console.log('generating test skeleton')
         const { testSuite, filePath } = await generateTestSkeletonFile(
             formatPhoneNumberDoc
         )
+        console.log('test skeleton generated')
 
         // Step 2: Generate a complete test from the skeleton
         await generateTestFromSkeleton(filePath, filePath)
+        console.log('generating test from skeleton')
 
         // Step 3: Generate a function implementation that passes the tests
         const outputFilePath = `./${testSuite.functionName}.ts`

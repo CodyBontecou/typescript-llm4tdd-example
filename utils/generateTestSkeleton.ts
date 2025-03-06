@@ -38,13 +38,13 @@ export type TestSuite = z.infer<typeof TestSuiteSchema>
  */
 export async function generateTestSkeleton(
     customPrompt?: string,
-    model: string = 'gpt-4o-2024-08-06',
+    model: string = 'deepseek-reasoner',
     seed?: number,
     additionalContext?: string
 ): Promise<TestSuite> {
     const openai = new OpenAI({
-        // baseURL: 'https://api.deepseek.com',
-        // apiKey: process.env.DEEPSEEK_API_KEY,
+        baseURL: 'https://api.deepseek.com',
+        apiKey: process.env.DEEPSEEK_API_KEY,
     })
 
     // Default prompt if none provided
@@ -74,16 +74,69 @@ export async function generateTestSkeleton(
 `
     const prompt = customPrompt || defaultPrompt
 
-    // Generate the test skeleton using OpenAI
-    const completion = await openai.beta.chat.completions.parse({
+    // Generate the test skeleton using OpenAI/DeepSeek
+    // DeepSeek Reasoner requires the last message to be a user message
+    const response = await openai.chat.completions.create({
         model,
-        messages: [{ role: 'system', content: prompt }],
-        response_format: zodResponseFormat(TestSuiteSchema, 'testSkeleton'),
+        messages: [
+            {
+                role: 'system',
+                content:
+                    'You are a helpful assistant that generates test skeletons.',
+            },
+            { role: 'user', content: prompt },
+        ],
+        // DeepSeek doesn't support zodResponseFormat, so we'll parse the response manually
+        // response_format: zodResponseFormat(TestSuiteSchema, 'testSkeleton'),
         seed,
+        stream: true,
     })
 
-    const testSkeletonJson = JSON.parse(completion.choices[0].message.content)
-    const testSkeleton: TestSuite = testSkeletonJson
+    // Extract the code from the response
+    // const responseContent = completion.choices[0].message.content || ''
+
+    let reasoningContent: string = ''
+    let responseContent: string = ''
+
+    for await (const chunk of response) {
+        console.log(chunk.choices[0].delta)
+        if (chunk.choices[0].delta.reasoning_content) {
+            reasoningContent += chunk.choices[0].delta.reasoning_content
+        } else {
+            responseContent += chunk.choices[0].delta.content
+        }
+    }
+
+    // Parse the response to extract function name and test cases
+    const functionNameMatch =
+        responseContent.match(/describe\(['"](.*?)['"]/) || []
+    const functionName = functionNameMatch[1] || 'unknownFunction'
+
+    // Extract test cases using regex
+    const testCaseRegex = /it\(['"](.*?)['"]/g
+    const testCases = []
+    let match
+
+    while ((match = testCaseRegex.exec(responseContent)) !== null) {
+        testCases.push({
+            description: match[1],
+            assertion: 'Implementation needed',
+        })
+    }
+
+    // Create the test skeleton object
+    const testSkeleton: TestSuite = {
+        functionName,
+        testCases:
+            testCases.length > 0
+                ? testCases
+                : [
+                      {
+                          description: 'default test case',
+                          assertion: 'Implementation needed',
+                      },
+                  ],
+    }
 
     return testSkeleton
 }
@@ -97,7 +150,7 @@ export async function generateTestSkeleton(
  */
 export async function generateTestSkeletonFile(
     customPrompt?: string,
-    model: string = 'gpt-4o-2024-08-06',
+    model: string = 'deepseek-reasoner',
     seed: number = Math.floor(Math.random() * 1000000)
 ): Promise<{ testSuite: TestSuite; filePath: string }> {
     // Generate the test skeleton

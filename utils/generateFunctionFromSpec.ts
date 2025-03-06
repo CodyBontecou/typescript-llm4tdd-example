@@ -60,7 +60,7 @@ export async function generateFunctionFromSpec(
         [1, 2].includes(parsedTestResults.failed) ||
         (parsedTestResults.failed !== 0 && parsedTestResults.passed !== 0)
 
-    while (!testsPassed && !weirdTests && attempt < maxAttempts) {
+    while (!testsPassed && weirdTests && attempt < maxAttempts) {
         attempt++
         console.log(`\n--- Attempt ${attempt} ---`)
 
@@ -71,8 +71,8 @@ export async function generateFunctionFromSpec(
 
             messages.push({
                 role: 'system',
-                content: `Tests are failing with this output: ${testOutput}.
-								Here's the code of the function that produces the output: ${functionFileContent}
+                content: `Tests are failing with this function: ${functionFileContent}.
+								Here's the stdout of the test failures: ${testOutput}
 								Here's the code of the test file: ${testFileContent}
 								`,
             })

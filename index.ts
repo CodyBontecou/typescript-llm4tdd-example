@@ -6,6 +6,8 @@ import {
 import { docGeneratorPrompt } from './utils/constants/docGeneratorPrompt'
 import { formatPhoneNumberDoc } from './utils/constants/formatPhoneNumberDoc'
 import { extractItStatements } from './utils/extractItStatements'
+import { Effect, pipe, Console } from 'effect'
+import { processItStatements } from './utils/processItStatements'
 
 /**
  * Complete TDD workflow:
@@ -27,30 +29,40 @@ export async function runTDDWorkflow() {
         )
 
         // Step 3: Extract it statements from testFile:
-        if (testFileContent) {
-            const itStatements = extractItStatements(testFileContent)
+        pipe(
+            Effect.succeed(testFileContent),
+            Effect.flatMap(content =>
+                content
+                    ? processItStatements(content)
+                    : Effect.succeed('No content to process')
+            ),
+            Effect.tap('Completed processing'),
+            Effect.runPromise
+        )
+        // if (testFileContent) {
+        //     const itStatements = extractItStatements(testFileContent)
 
-            // Step 4: Iterate over nodes
-            itStatements.forEach(async (_, index) => {
-                // for (const [index, _] of itStatements.entries()) {
-                const { testSuite, filePath } = await generateTestSkeletonFile(
-                    formatPhoneNumberDoc,
-                    'gpt-4o-2024-08-06',
-                    Math.floor(Math.random() * 1000000),
-                    index
-                )
+        //     // Step 4: Iterate over nodes
+        //     itStatements.forEach(async (_, index) => {
+        //         // for (const [index, _] of itStatements.entries()) {
+        //         const { testSuite, filePath } = await generateTestSkeletonFile(
+        //             formatPhoneNumberDoc,
+        //             'gpt-4o-2024-08-06',
+        //             Math.floor(Math.random() * 1000000),
+        //             index
+        //         )
 
-                await generateTestFromSkeleton(filePath, filePath)
+        //         await generateTestFromSkeleton(filePath, filePath)
 
-                const outputFilePath = `./${testSuite.functionName + index}.ts`
-                const res = await generateFunctionFromSpec(
-                    filePath,
-                    outputFilePath
-                )
+        //         const outputFilePath = `./${testSuite.functionName + index}.ts`
+        //         const res = await generateFunctionFromSpec(
+        //             filePath,
+        //             outputFilePath
+        //         )
 
-                if (res?.passed) return
-            })
-        }
+        //         if (res?.passed) return
+        //     })
+        // }
     } catch (error) {
         console.error('Workflow failed:', error)
     }

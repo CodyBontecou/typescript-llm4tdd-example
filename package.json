@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-		"test:watch": "vitest",
+    "test:watch": "vitest",
     "tdd": "tsx index.ts"
   },
   "keywords": [],
@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "effect": "^3.13.6",
     "openai": "^4.86.1",
     "vitest": "^3.0.7",
     "zod": "^3.24.2"

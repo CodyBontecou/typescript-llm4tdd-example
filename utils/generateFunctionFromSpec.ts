@@ -33,7 +33,6 @@ export async function generateFunctionFromSpec(
 		Do not include the single apostrophe character
 `
     const prompt = customPrompt || defaultPrompt
-    const retryPrompt = 'Tests are failing with this output. Try again.'
 
     // Read the test specification file
     const testSpec = readFileContent(testFilePath)
@@ -54,17 +53,31 @@ export async function generateFunctionFromSpec(
     let testsPassed = false
     let attempt = 0
     let testOutput = ''
+    let parsedTestResults = { failed: 0, passed: 0 }
     let generatedContent: string | null = null
 
-    while (!testsPassed && attempt < maxAttempts) {
+    while (
+        !testsPassed &&
+        attempt < maxAttempts
+        // &&
+        // (parsedTestResults.failed > parsedTestResults.passed ||
+        //     ![1, 2].includes(parsedTestResults.failed) ||
+        //     (parsedTestResults.failed === 0 && parsedTestResults.passed === 0))
+    ) {
         attempt++
         console.log(`\n--- Attempt ${attempt} ---`)
 
         // If this is a retry, add the test output to the messages
         if (attempt > 1 && testOutput) {
+            const functionFileContent = readFileContent(outputFilePath)
+            const testFileContent = readFileContent(testFilePath)
+
             messages.push({
                 role: 'system',
-                content: retryPrompt + '\n\n' + testOutput,
+                content: `Tests are failing with this output: ${testOutput}.
+								Here's the code of the function that produces the output: ${functionFileContent}
+								Here's the code of the test file: ${testFileContent}
+								`,
             })
         }
 
@@ -80,6 +93,7 @@ export async function generateFunctionFromSpec(
             const testResult = await runTests(testCommand)
             testsPassed = testResult.passed
             testOutput = testResult.output
+            parsedTestResults = testResult.parsedTestResults
 
             // Add the AI's response to the message history
             messages.push({
@@ -93,7 +107,12 @@ export async function generateFunctionFromSpec(
     }
 
     // Re-generate Test Skeleton and attempt function generation again
-    if (attempt === maxAttempts) {
+    if (
+        attempt === maxAttempts
+        // parsedTestResults.failed > parsedTestResults.passed ||
+        // ![1, 2].includes(parsedTestResults.failed) ||
+        // (parsedTestResults.failed === 0 && parsedTestResults.passed === 0)
+    ) {
         await runTDDWorkflow()
     }
 

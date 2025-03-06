@@ -1,13 +1,16 @@
 import { exec } from 'child_process'
+import { parseTestResults } from './parseTestResults'
 
 /**
  * Runs tests and returns a promise with the test results
  * @param command Optional test command to run (defaults to 'npm run test')
  * @returns Promise that resolves to an object with test results
  */
-export function runTests(
-    command: string = 'npm run test'
-): Promise<{ passed: boolean; output: string }> {
+export function runTests(command: string = 'npm run test'): Promise<{
+    passed: boolean
+    output: string
+    parsedTestResults: { failed: number; passed: number }
+}> {
     return new Promise(resolve => {
         console.log('Running tests...')
 
@@ -25,6 +28,8 @@ export function runTests(
 
             console.log(`Test results:\n${stdout}`)
 
+            const parsedTestResults = parseTestResults(stdout)
+
             // Check if all tests passed
             const passed =
                 stdout.includes('✓') &&
@@ -39,7 +44,7 @@ export function runTests(
                 )
             }
 
-            resolve({ passed, output: testOutput })
+            resolve({ passed, output: testOutput, parsedTestResults })
         })
     })
 }

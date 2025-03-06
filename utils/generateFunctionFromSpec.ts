@@ -55,15 +55,12 @@ export async function generateFunctionFromSpec(
     let testOutput = ''
     let parsedTestResults = { failed: 0, passed: 0 }
     let generatedContent: string | null = null
+    const weirdTests =
+        parsedTestResults.failed <= parsedTestResults.passed ||
+        [1, 2].includes(parsedTestResults.failed) ||
+        (parsedTestResults.failed !== 0 && parsedTestResults.passed !== 0)
 
-    while (
-        !testsPassed &&
-        attempt < maxAttempts
-        // &&
-        // (parsedTestResults.failed > parsedTestResults.passed ||
-        //     ![1, 2].includes(parsedTestResults.failed) ||
-        //     (parsedTestResults.failed === 0 && parsedTestResults.passed === 0))
-    ) {
+    while (!testsPassed && !weirdTests && attempt < maxAttempts) {
         attempt++
         console.log(`\n--- Attempt ${attempt} ---`)
 
@@ -106,13 +103,9 @@ export async function generateFunctionFromSpec(
         }
     }
 
-    // Re-generate Test Skeleton and attempt function generation again
-    if (
-        attempt === maxAttempts
-        // parsedTestResults.failed > parsedTestResults.passed ||
-        // ![1, 2].includes(parsedTestResults.failed) ||
-        // (parsedTestResults.failed === 0 && parsedTestResults.passed === 0)
-    ) {
+    if (testsPassed) {
+        return generatedContent
+    } else {
         await runTDDWorkflow()
     }
 

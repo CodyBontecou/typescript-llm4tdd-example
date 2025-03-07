@@ -74,9 +74,8 @@ export async function generateTestSkeleton(
 `
     const prompt = customPrompt || defaultPrompt
 
-    // Generate the test skeleton using OpenAI/DeepSeek
-    // DeepSeek Reasoner requires the last message to be a user message
-    const response = await openai.chat.completions.create({
+    // Generate the test skeleton using OpenAI
+    const completion = await openai.beta.chat.completions.parse({
         model,
         messages: [
             {
@@ -88,55 +87,12 @@ export async function generateTestSkeleton(
         ],
         // DeepSeek doesn't support zodResponseFormat, so we'll parse the response manually
         // response_format: zodResponseFormat(TestSuiteSchema, 'testSkeleton'),
+        response_format: zodResponseFormat(TestSuiteSchema, 'testSkeleton'),
         seed,
-        stream: true,
     })
 
-    // Extract the code from the response
-    // const responseContent = completion.choices[0].message.content || ''
-
-    let reasoningContent: string = ''
-    let responseContent: string = ''
-
-    for await (const chunk of response) {
-        console.log(chunk.choices[0].delta)
-        if (chunk.choices[0].delta.reasoning_content) {
-            reasoningContent += chunk.choices[0].delta.reasoning_content
-        } else {
-            responseContent += chunk.choices[0].delta.content
-        }
-    }
-
-    // Parse the response to extract function name and test cases
-    const functionNameMatch =
-        responseContent.match(/describe\(['"](.*?)['"]/) || []
-    const functionName = functionNameMatch[1] || 'unknownFunction'
-
-    // Extract test cases using regex
-    const testCaseRegex = /it\(['"](.*?)['"]/g
-    const testCases = []
-    let match
-
-    while ((match = testCaseRegex.exec(responseContent)) !== null) {
-        testCases.push({
-            description: match[1],
-            assertion: 'Implementation needed',
-        })
-    }
-
-    // Create the test skeleton object
-    const testSkeleton: TestSuite = {
-        functionName,
-        testCases:
-            testCases.length > 0
-                ? testCases
-                : [
-                      {
-                          description: 'default test case',
-                          assertion: 'Implementation needed',
-                      },
-                  ],
-    }
+    const testSkeletonJson = JSON.parse(completion.choices[0].message.content)
+    const testSkeleton: TestSuite = testSkeletonJson
 
     return testSkeleton
 }

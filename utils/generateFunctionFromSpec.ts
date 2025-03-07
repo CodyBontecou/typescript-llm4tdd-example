@@ -45,8 +45,10 @@ export async function generateFunctionFromSpec(
     const messages: ChatCompletionMessageParam[] = [
         {
             role: 'system',
-            content: prompt + testSpec,
+            content:
+                'You are an advanced AI writing Typescript functions using the provided test as a specification for expected functionality.',
         },
+        { role: 'user', content: testSpec + prompt },
     ]
 
     // Main execution loop
@@ -70,7 +72,7 @@ export async function generateFunctionFromSpec(
             const testFileContent = readFileContent(testFilePath)
 
             messages.push({
-                role: 'system',
+                role: 'user',
                 content: `Tests are failing with this function: ${functionFileContent}.
 								Here's the stdout of the test failures: ${testOutput}
 								Here's the code of the test file: ${testFileContent}

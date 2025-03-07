@@ -13,17 +13,26 @@ import { writeFileContent } from './writeFileContent'
 export async function generateTestFromSkeleton(
     skeletonFilePath: string,
     outputFilePath?: string,
-    customPrompt?: string
+    customPrompt?: string,
+    additionalContext?: string
 ): Promise<string | null> {
     // Default prompt if none provided
     const defaultPrompt = `
-    Use this Vitest test skeleton to finish writing the tests.
+    Generate a Typescript test in the following format:
 
-    Only return executable Typescript code
-    Do not return Markdown output
-    Do not wrap code in triple backticks
-    Do not return YAML
-    Do not include the single apostrophe character
+    import { describe, it, expect } from 'vitest'
+
+    describe('functionName', () => {
+        it('does the thing you want', () => {})
+        it("doesn't do the thing you're worried about", () => {})
+    })
+
+    I want the test to contain a function name within the describe block. Then provide as many it statements you believe is necessary to describe and test the function.
+
+		${
+            additionalContext ??
+            'The function we will be testing does not exist but we will use this initial test file to guide the building of it.'
+        }
 `
     const prompt = customPrompt || defaultPrompt
 
@@ -38,8 +47,9 @@ export async function generateTestFromSkeleton(
     const messages: ChatCompletionMessageParam[] = [
         {
             role: 'system',
-            content: testSpec + prompt,
+            content: 'You are an advanced AI generating vitest tests.',
         },
+        { role: 'user', content: testSpec + prompt },
     ]
 
     // Generate the test content

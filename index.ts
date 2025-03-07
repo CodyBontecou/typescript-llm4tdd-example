@@ -18,7 +18,7 @@ export async function runTDDWorkflow() {
         const { testSuite, filePath } = await generateTestSkeletonFile(
             formatPhoneNumberDoc
         )
-        console.log('test skeleton generated')
+        // console.log('test skeleton generated')
 
         // Step 2: Generate a complete test from the skeleton
         await generateTestFromSkeleton(filePath, filePath)

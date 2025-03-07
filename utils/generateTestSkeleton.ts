@@ -4,6 +4,7 @@ import { z } from 'zod'
 import 'dotenv/config'
 
 import { writeFileContent } from './writeFileContent'
+import { models } from './chat'
 
 // Define schemas for the test structure
 const TestCaseSchema = z.object({
@@ -38,14 +39,11 @@ export type TestSuite = z.infer<typeof TestSuiteSchema>
  */
 export async function generateTestSkeleton(
     customPrompt?: string,
-    model: string = 'gpt-4o-2024-08-06',
+    model: string = models.openai.model,
     seed?: number,
     additionalContext?: string
 ): Promise<TestSuite> {
-    const openai = new OpenAI({
-        // baseURL: 'https://api.deepseek.com',
-        // apiKey: process.env.DEEPSEEK_API_KEY,
-    })
+    const openai = new OpenAI({ ...models.anthropic })
 
     // Default prompt if none provided
     const defaultPrompt = `
@@ -54,8 +52,12 @@ export async function generateTestSkeleton(
     import { describe, it, expect } from 'vitest'
 
     describe('functionName', () => {
-        it('does the thing you want', () => {})
-        it("doesn't do the thing you're worried about", () => {})
+        it('does the thing you want', () => {
+					expect('testing the thing does what we want')
+				})
+        it("doesn't do the thing you're worried about", () => {
+					expect('testing the thing we dont want to worry about')
+				})
     })
 
     I want the test to contain a function name within the describe block. Then provide as many it statements you believe is necessary to describe and test the function.
@@ -65,25 +67,33 @@ export async function generateTestSkeleton(
             'The function we will be testing does not exist but we will use this initial test file to guide the building of it.'
         }
 
-
-    Only return executable Typescript code
-    Do not return Markdown output
-    Do not wrap code in triple backticks
-    Do not return YAML
-    Do not include the single apostrophe character
+		Only return executable Typescript code
+		Do not return Markdown output
+		Do not wrap code in triple backticks
+		Do not return YAML
+		Do not include the single apostrophe character
+		Do not include any text besides the code
 `
     const prompt = customPrompt || defaultPrompt
 
     // Generate the test skeleton using OpenAI
     const completion = await openai.beta.chat.completions.parse({
         model,
-        messages: [{ role: 'system', content: prompt }],
+        messages: [
+            {
+                role: 'system',
+                content: `
+								You are an advanced AI generating vitest tests.`,
+            },
+            { role: 'user', content: prompt },
+        ],
         response_format: zodResponseFormat(TestSuiteSchema, 'testSkeleton'),
         seed,
     })
 
-    const testSkeletonJson = JSON.parse(completion.choices[0].message.content)
-    const testSkeleton: TestSuite = testSkeletonJson
+    const testSkeleton: TestSuite = JSON.parse(
+        completion.choices[0].message.content
+    )
 
     return testSkeleton
 }
@@ -97,7 +107,7 @@ export async function generateTestSkeleton(
  */
 export async function generateTestSkeletonFile(
     customPrompt?: string,
-    model: string = 'gpt-4o-2024-08-06',
+    model: string = models.openai.model,
     seed: number = Math.floor(Math.random() * 1000000)
 ): Promise<{ testSuite: TestSuite; filePath: string }> {
     // Generate the test skeleton

@@ -2,16 +2,27 @@ import OpenAI from 'openai'
 import { ChatCompletionMessageParam } from 'openai/resources'
 import 'dotenv/config'
 
-const openai = new OpenAI({
-    // baseURL: 'https://api.deepseek.com',
-    // apiKey: process.env.DEEPSEEK_API_KEY,
+export const openai = new OpenAI({
+    // baseURL: 'http://localhost:11434/v1',
+    // apiKey: 'ollama',
 })
+
+const models = {
+    openai: {
+        model: 'gpt-4o-2024-08-06',
+    },
+    deepseek: {
+        model: 'deepseek-reasoner',
+    },
+    qwen: {
+        model: 'qwen2.5-coder:32b',
+    },
+}
 
 export async function chat(messages: ChatCompletionMessageParam[]) {
     try {
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-2024-08-06',
-            // model: 'deepseek-reasoner',
+            model: models.openai.model,
             messages,
         })
 

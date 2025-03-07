@@ -60,7 +60,7 @@ export async function generateFunctionFromSpec(
         [1, 2].includes(parsedTestResults.failed) ||
         (parsedTestResults.failed !== 0 && parsedTestResults.passed !== 0)
 
-    while (!testsPassed && !weirdTests && attempt < maxAttempts) {
+    while (!testsPassed && attempt < maxAttempts) {
         attempt++
         console.log(`\n--- Attempt ${attempt} ---`)
 

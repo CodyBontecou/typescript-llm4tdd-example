@@ -20,6 +20,11 @@ export const models = {
         model: 'qwen2.5-coder:32b',
         url: 'http://localhost:11434/v1',
     },
+    diffusion: [
+        {
+            llada: { url: '' },
+        },
+    ],
 }
 
 export const openai = new OpenAI({ ...models.openai })

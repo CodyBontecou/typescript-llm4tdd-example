@@ -2,11 +2,12 @@ import OpenAI from 'openai'
 import { ChatCompletionMessageParam } from 'openai/resources'
 
 const openai = new OpenAI()
+const model = 'gpt-4o-mini'
 
 export async function chat(messages: ChatCompletionMessageParam[]) {
     try {
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model,
             messages,
         })
 

@@ -8,20 +8,24 @@ import { runTests } from './runTests'
  * Generates a function implementation from a test specification using AI
  * @param testFilePath Path to the test specification file
  * @param outputFilePath Path where the generated function should be saved
- * @param customPrompt Optional custom prompt to override the default one
- * @param maxAttempts Maximum number of attempts to generate a passing implementation (default: 5)
- * @param testCommand Optional custom test command to run (default: 'npm run test')
+ * @param options Optional configuration parameters
  * @returns Promise that resolves to the generated content if successful, or null if all attempts failed
  */
 export async function generateFunctionFromSpec(
     testFilePath: string,
     outputFilePath: string,
-    customPrompt?: string,
-    maxAttempts: number = 5,
-    testCommand?: string
+    options: {
+        customPrompt?: string
+        maxAttempts?: number
+        testCommand?: string
+    } = {}
 ): Promise<string | null> {
+    const { customPrompt, maxAttempts = 5, testCommand } = options
+
     // Default prompt if none provided
-    const defaultPrompt = `
+    const basePrompt =
+        customPrompt ||
+        `
     Write a Typescript module that will make these tests pass and conforms to the passed conventions.
 
     Only return executable Typescript code
@@ -29,61 +33,45 @@ export async function generateFunctionFromSpec(
     Do not wrap code in triple backticks
     Do not return YAML
 `
-    const prompt = customPrompt || defaultPrompt
-    const retryPrompt = 'Tests are failing with this output. Try again.'
 
     // Read the test specification file
     const testSpec = readFileContent(testFilePath)
 
-    // Attach content of the spec file to prompt
+    // Initialize message history
     const messages: ChatCompletionMessageParam[] = [
-        {
-            role: 'system',
-            content: prompt + testSpec,
-        },
+        { role: 'system', content: basePrompt + testSpec },
     ]
 
-    // Main execution loop
-    let testsPassed = false
-    let attempt = 0
-    let testOutput = ''
-    let generatedContent: string | null = null
-
-    while (!testsPassed && attempt < maxAttempts) {
-        attempt++
+    // Try generating implementations until tests pass or max attempts reached
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         console.log(`\n--- Attempt ${attempt} ---`)
-
-        // If this is a retry, add the test output to the messages
-        if (attempt > 1 && testOutput) {
-            messages.push({
-                role: 'system',
-                content: retryPrompt + '\n\n' + testOutput,
-            })
-        }
 
         // Generate the function implementation
         const response = await chat(messages)
-
-        // Save and test the generated implementation
-        if (response) {
-            generatedContent = response
-            writeFileContent(outputFilePath, response)
-
-            // Run the tests
-            const testResult = await runTests(testCommand)
-            testsPassed = testResult.passed
-            testOutput = testResult.output
-
-            // Add the AI's response to the message history
-            messages.push({
-                role: 'assistant',
-                content: response,
-            })
-        } else {
+        if (!response) {
             console.error('Failed to get a response from the AI.')
             break
         }
+
+        // Save implementation and run tests
+        writeFileContent(outputFilePath, response)
+        const { passed, output } = await runTests(testCommand)
+
+        // Update message history
+        messages.push({ role: 'assistant', content: response })
+
+        // Return successful implementation
+        if (passed) {
+            return response
+        }
+
+        // Add test failure information for retry
+        messages.push({
+            role: 'system',
+            content:
+                'Tests are failing with this output. Try again.\n\n' + output,
+        })
     }
 
-    return testsPassed ? generatedContent : null
+    return null
 }

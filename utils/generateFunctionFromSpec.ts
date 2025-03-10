@@ -42,30 +42,25 @@ export async function generateFunctionFromSpec(
         { role: 'system', content: basePrompt + testSpec },
     ]
 
-    // Try generating implementations until tests pass or max attempts reached
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        console.log(`\n--- Attempt ${attempt} ---`)
+    let testPassed = false
+    let attempts = 0
 
-        // Generate the function implementation
+    while (!testPassed && attempts < maxAttempts) {
+        attempts++
         const response = await chat(messages)
+
         if (!response) {
             console.error('Failed to get a response from the AI.')
             break
         }
 
+        messages.push({ role: 'assistant', content: response })
+
         // Save implementation and run tests
         writeFileContent(outputFilePath, response)
         const { passed, output } = await runTests(testCommand)
+        testPassed = passed
 
-        // Update message history
-        messages.push({ role: 'assistant', content: response })
-
-        // Return successful implementation
-        if (passed) {
-            return response
-        }
-
-        // Add test failure information for retry
         messages.push({
             role: 'system',
             content:
